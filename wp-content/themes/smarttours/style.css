@@ -1,0 +1,14 @@
+/*
+Theme Name: Smart Tours
+Theme URI: https://smarttours.ca
+Author: Canada Smart Tours
+Author URI: https://smarttours.ca
+Description: Mobile-first tour reseller and experiences theme for Canada Smart Tours (Okanagan Valley, BC). Built with clean architecture, hierarchical experiences taxonomy, faceted AJAX search, interactive Leaflet mapping, click tracking, and trip builder.
+Version: 1.0.0
+Requires at least: 6.0
+Tested up to: 6.7
+Requires PHP: 8.1
+Text Domain: smarttours
+*/
+
+/* Core variables and resets are loaded via assets/css/main.css */
