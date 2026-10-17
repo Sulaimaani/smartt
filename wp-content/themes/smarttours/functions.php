@@ -9,7 +9,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('SMARTTOURS_VERSION', '1.0.0');
+define('SMARTTOURS_VERSION', '2.0.0');
 define('SMARTTOURS_DIR', get_template_directory());
 define('SMARTTOURS_URI', get_template_directory_uri());
 
@@ -57,6 +57,7 @@ add_action('after_setup_theme', 'smarttours_setup');
  */
 function smarttours_activation_setup() {
     smarttours_create_clicks_table();
+    smarttours_create_trips_table();
     smarttours_register_post_types();
     smarttours_register_taxonomies();
     smarttours_custom_rewrite_rules();
@@ -72,10 +73,10 @@ add_action('after_switch_theme', 'smarttours_activation_setup');
  * Enqueue Styles and Scripts
  */
 function smarttours_enqueue_scripts() {
-    // 1. Google Fonts: Bebas Neue, Anton, Archivo Black, Libre Caslon Text
+    // 1. Google Font: Plus Jakarta Sans (Clean, modern, geometric sans-serif)
     wp_enqueue_style(
         'smarttours-fonts',
-        'https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&family=Bebas+Neue&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap',
+        'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap',
         array(),
         null
     );
@@ -85,7 +86,7 @@ function smarttours_enqueue_scripts() {
     wp_enqueue_script('leaflet-js', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', array(), '1.9.4', true);
 
     // 3. Main Theme CSS
-    wp_enqueue_style('smarttours-style', SMARTTOURS_URI . '/assets/css/main.css', array('leaflet-css'), SMARTTOURS_VERSION);
+    wp_enqueue_style('smarttours-style', SMARTTOURS_URI . '/assets/css/main.css', array('leaflet-css', 'smarttours-fonts'), SMARTTOURS_VERSION);
 
     // 4. Main Theme JavaScript
     wp_enqueue_script('smarttours-main', SMARTTOURS_URI . '/assets/js/main.js', array('leaflet-js'), SMARTTOURS_VERSION, true);
@@ -96,6 +97,8 @@ function smarttours_enqueue_scripts() {
         'nonce'        => wp_create_nonce('smarttours_ajax_nonce'),
         'home_url'     => home_url('/'),
         'my_trip_url'  => home_url('/my-trip/'),
+        'currency'     => 'CAD',
+        'currency_sym' => '$',
         'i18n'         => array(
             'added_to_trip'   => __('Added to My Trip', 'smarttours'),
             'removed_to_trip' => __('Removed from My Trip', 'smarttours'),

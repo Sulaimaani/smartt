@@ -1,6 +1,7 @@
 <?php
 /**
  * Taxonomy Archive: Experience Category (Main, Sub, and Sub-sub Categories)
+ * Clean, modern Viator-inspired layout with sub-category chips, white filter column, and map.
  * Canada Smart Tours — smarttours.ca
  *
  * @package SmartTours
@@ -9,29 +10,13 @@
 get_header();
 
 $current_term = get_queried_object();
-$hero_img     = get_term_meta($current_term->term_id, 'st_hero_image', true);
-if (!$hero_img) {
-    $hero_img = 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80';
-}
+$desc = !empty($current_term->description) ? $current_term->description : sprintf(__('Discover top-rated tours, tastings, and adventures in %s, Okanagan Valley.', 'smarttours'), $current_term->name);
 
-// Child terms
+// Child terms for sub-category chips
 $child_terms = get_terms(array(
     'taxonomy'   => 'experience_category',
     'parent'     => $current_term->term_id,
     'hide_empty' => false,
-));
-
-// Linked Guide Pages & Blog Posts for this term
-$linked_articles = get_posts(array(
-    'post_type'      => array('post', 'page'),
-    'post_status'    => 'publish',
-    'posts_per_page' => 10,
-    'meta_query'     => array(
-        array(
-            'key'   => '_st_parent_term_id',
-            'value' => $current_term->term_id,
-        )
-    )
 ));
 
 // Real amenities with counts
@@ -47,8 +32,10 @@ $initial_paged = max(1, get_query_var('paged'));
 $exp_query = new WP_Query(array(
     'post_type'      => 'experience',
     'post_status'    => 'publish',
-    'posts_per_page' => 15,
+    'posts_per_page' => 12,
     'paged'          => $initial_paged,
+    'orderby'        => 'menu_order date',
+    'order'          => 'DESC',
     'tax_query'      => array(
         array(
             'taxonomy'         => 'experience_category',
@@ -60,180 +47,189 @@ $exp_query = new WP_Query(array(
 ));
 ?>
 
-<main id="primary" class="site-main" role="main">
-    <!-- Category Hero Banner with Breadcrumbs -->
-    <section class="st-category-hero" style="background-image: url('<?php echo esc_url($hero_img); ?>');">
-        <div class="st-category-hero__overlay"></div>
-        <div class="st-container st-category-hero__content">
-            <?php smarttours_render_breadcrumbs(); ?>
-            <div class="st-hero-pill-badge" style="margin-bottom: 12px;">
-                <span>🇨🇦</span>
-                <span>CANADA SMART TOURS &bull; OKANAGAN VALLEY</span>
-            </div>
-            <h1 class="st-category-hero__title"><?php echo esc_html($current_term->name); ?></h1>
-            <?php if (!empty($current_term->description)): ?>
-                <p class="st-category-hero__desc"><?php echo esc_html($current_term->description); ?></p>
-            <?php endif; ?>
-        </div>
-    </section>
-
+<main id="primary" class="site-main st-listing-page" role="main">
     <div class="st-container">
-        <!-- Subcategories Grid (if child terms exist) -->
-        <?php if (!empty($child_terms) || !empty($linked_articles)): ?>
-            <section class="st-subcategories-section" style="padding-top: 40px; padding-bottom: 20px;">
-                <?php if (!empty($child_terms)): ?>
-                    <div class="st-section-header">
-                        <div>
-                            <span class="st-eyebrow">SUB-CATEGORIES</span>
-                            <h2 style="font-size: 1.8rem; margin-top: 4px;"><?php printf(__('Explore %s Options', 'smarttours'), esc_html($current_term->name)); ?></h2>
+        <!-- Breadcrumb Row -->
+        <div class="st-listing-breadcrumbs">
+            <?php smarttours_render_breadcrumbs(); ?>
+        </div>
+
+        <!-- Header: H1 + One-line intro -->
+        <header class="st-listing-header">
+            <h1 class="st-listing-title"><?php echo esc_html($current_term->name); ?></h1>
+            <p class="st-listing-intro"><?php echo esc_html($desc); ?></p>
+
+            <!-- Sub-Category Chips (Horizontal Scroll on Mobile) -->
+            <?php if (!empty($child_terms) && !is_wp_error($child_terms)): ?>
+                <div class="st-subcat-chips-wrap">
+                    <div class="st-subcat-chips">
+                        <a href="<?php echo esc_url(get_term_link($current_term)); ?>" class="st-subcat-chip is-active">
+                            <span>All <?php echo esc_html($current_term->name); ?></span>
+                        </a>
+                        <?php foreach ($child_terms as $child): ?>
+                            <a href="<?php echo esc_url(get_term_link($child)); ?>" class="st-subcat-chip">
+                                <span><?php echo esc_html($child->name); ?></span>
+                                <?php if ($child->count > 0): ?>
+                                    <span class="st-subcat-chip__count"><?php echo intval($child->count); ?></span>
+                                <?php endif; ?>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </header>
+
+        <!-- Main Listing Layout (Sidebar + Content Side-by-Side) -->
+        <div class="st-listing-layout js-filter-wrapper">
+            <!-- Filter Sidebar -->
+            <aside class="st-filter-sidebar js-filter-sidebar" role="complementary" aria-label="<?php esc_attr_e('Filter experiences', 'smarttours'); ?>">
+                <input type="hidden" name="filter_term_id" value="<?php echo esc_attr($current_term->term_id); ?>" />
+
+                <div class="st-filter-sidebar__header">
+                    <div class="st-filter-sidebar__title">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+                        <span>FILTERS</span>
+                    </div>
+                    <button type="button" class="st-filter-clear-btn js-clear-filters">Reset</button>
+                    <button type="button" class="st-filter-sidebar__close js-close-filters-sheet" aria-label="Close filters">&times;</button>
+                </div>
+
+                <div class="st-filter-sidebar__body">
+                    <!-- Keyword Search (Tourism Kelowna Style) -->
+                    <div class="st-filter-group">
+                        <label class="st-filter-group__label" for="filter_keyword"><?php _e('KEYWORD', 'smarttours'); ?></label>
+                        <form class="st-filter-search-box js-search-form">
+                            <input type="text" name="filter_keyword" id="filter_keyword" placeholder="<?php esc_attr_e('Search', 'smarttours'); ?>" autocomplete="off" />
+                            <button type="submit" class="st-filter-search-btn" aria-label="<?php esc_attr_e('Filter search', 'smarttours'); ?>">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Real Amenities Checkboxes with Counts -->
+                    <div class="st-filter-group">
+                        <span class="st-filter-group__label"><?php _e('AMENITIES', 'smarttours'); ?></span>
+                        <ul class="st-checkbox-list">
+                            <?php
+                            if (!empty($all_amenities) && !is_wp_error($all_amenities)):
+                                $cnt = 0;
+                                foreach ($all_amenities as $am):
+                                    if (is_numeric($am->name)) continue;
+                                    $cnt++;
+                                    $is_extra = ($cnt > 5);
+                                    ?>
+                                    <li class="st-checkbox-item <?php echo $is_extra ? 'st-amenity-extra' : ''; ?>" <?php echo $is_extra ? 'style="display:none;"' : ''; ?>>
+                                        <label class="st-checkbox-label">
+                                            <input type="checkbox" name="amenity[]" value="<?php echo esc_attr($am->term_id); ?>" class="js-filter-input" />
+                                            <span class="st-checkbox-custom"></span>
+                                            <span class="st-checkbox-text"><?php echo esc_html($am->name); ?></span>
+                                            <span class="st-checkbox-badge">(<?php echo intval($am->count); ?>)</span>
+                                        </label>
+                                    </li>
+                                    <?php
+                                endforeach;
+
+                                if ($cnt > 5):
+                                    ?>
+                                    <li>
+                                        <button type="button" class="st-show-more-btn js-show-more-amenities">
+                                            Show <?php echo ($cnt - 5); ?> more &#9662;
+                                        </button>
+                                    </li>
+                                    <?php
+                                endif;
+                            endif;
+                            ?>
+                        </ul>
+                    </div>
+
+                    <!-- Free Cancellation Toggle -->
+                    <div class="st-filter-group">
+                        <label class="st-toggle-label">
+                            <input type="checkbox" name="free_cancellation" id="filter_free_cancel" value="1" class="st-toggle-input js-filter-input" />
+                            <span class="st-toggle-switch"></span>
+                            <span class="st-toggle-text">
+                                <strong>Free cancellation</strong>
+                                <small>Full refund up to 24h before</small>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Price Range Slider -->
+                    <div class="st-filter-group">
+                        <div class="st-filter-group__head">
+                            <span class="st-filter-group__label"><?php _e('Max Price', 'smarttours'); ?></span>
+                            <span class="st-price-slider-val js-price-val">All Prices</span>
+                        </div>
+                        <input type="range" name="price_max" id="filter_price_max" min="20" max="400" step="10" value="400" class="st-slider js-price-slider" />
+                        <div class="st-slider-ticks">
+                            <span>$20 CAD</span>
+                            <span>$400+ CAD</span>
                         </div>
                     </div>
-                    <div class="st-subcats-grid">
-                        <?php foreach ($child_terms as $child):
-                            $child_tile = get_term_meta($child->term_id, 'st_tile_image', true) ?: $hero_img;
-                            ?>
-                            <a href="<?php echo esc_url(get_term_link($child)); ?>" class="st-subcat-pill">
-                                <span class="st-subcat-pill__title"><?php echo esc_html($child->name); ?></span>
-                                <span class="st-subcat-pill__count"><?php echo intval($child->count); ?> tours &rarr;</span>
-                            </a>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
 
-                <?php if (!empty($linked_articles)): ?>
-                    <h3 style="font-size: 1.3rem; margin-top: 25px; margin-bottom: 12px;"><?php _e('Local Guides & Stories', 'smarttours'); ?></h3>
-                    <div class="st-subcards-grid">
-                        <?php foreach ($linked_articles as $art):
-                            $is_guide = ($art->post_type === 'page');
-                            ?>
-                            <a href="<?php echo esc_url(get_permalink($art)); ?>" class="st-subcard">
-                                <span class="st-subcard__badge"><?php echo $is_guide ? __('GUIDE', 'smarttours') : __('BLOG', 'smarttours'); ?></span>
-                                <h4 class="st-subcard__title"><?php echo esc_html(get_the_title($art)); ?></h4>
-                                <p style="font-size: 0.875rem; color: #666; margin: 0;"><?php echo esc_html(wp_trim_words($art->post_content, 12)); ?></p>
-                            </a>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
-            </section>
-        <?php endif; ?>
-
-        <!-- Main Listing Area (Smart Sidebar + Toolbar + Experiences Grid) -->
-        <div class="st-archive-layout js-filter-wrapper">
-            <input type="hidden" name="filter_term_id" value="<?php echo esc_attr($current_term->term_id); ?>" />
-
-            <!-- Smart Modern Filter Sidebar -->
-            <aside class="st-smart-sidebar" role="complementary" aria-label="<?php esc_attr_e('Filter experiences', 'smarttours'); ?>">
-                <div class="st-smart-sidebar__header">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"></path></svg>
-                        <h3>FILTERS</h3>
-                    </div>
-                    <button type="button" class="st-clear-btn-text js-clear-filters">Clear All</button>
-                </div>
-
-                <!-- Keyword Search -->
-                <div class="st-filter-block">
-                    <label class="st-filter-block__title" for="filter_keyword"><?php _e('SEARCH KEYWORD', 'smarttours'); ?></label>
-                    <form class="st-smart-search-box js-search-form">
-                        <input type="text" name="filter_keyword" id="filter_keyword" placeholder="<?php esc_attr_e('e.g. Winery, kayak, e-bike...', 'smarttours'); ?>" />
-                        <button type="submit" aria-label="<?php esc_attr_e('Search', 'smarttours'); ?>">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <!-- Clear Filters Action Button at Bottom -->
+                    <div class="st-filter-action-block st-filter-action-block--bottom">
+                        <button type="button" class="st-btn-clear-filters js-clear-filters">
+                            CLEAR FILTERS
                         </button>
-                    </form>
+                    </div>
                 </div>
 
-                <!-- Real Amenities Checkboxes with Counts -->
-                <div class="st-filter-block">
-                    <span class="st-filter-block__title"><?php _e('AMENITIES &amp; FEATURES', 'smarttours'); ?></span>
-                    <ul class="st-smart-checkbox-list">
-                        <?php
-                        if (!empty($all_amenities) && !is_wp_error($all_amenities)):
-                            $cnt = 0;
-                            foreach ($all_amenities as $am):
-                                // Skip any accidental non-string terms
-                                if (is_numeric($am->name)) continue;
-                                $cnt++;
-                                $is_extra = ($cnt > 5);
-                                ?>
-                                <li class="st-smart-checkbox-item <?php echo $is_extra ? 'st-amenity-extra' : ''; ?>" <?php echo $is_extra ? 'style="display:none;"' : ''; ?>>
-                                    <label class="st-checkbox-label">
-                                        <input type="checkbox" name="amenity[]" value="<?php echo esc_attr($am->term_id); ?>" />
-                                        <span class="st-checkbox-custom"></span>
-                                        <span class="st-checkbox-text"><?php echo esc_html($am->name); ?></span>
-                                        <span class="st-checkbox-badge"><?php echo intval($am->count); ?></span>
-                                    </label>
-                                </li>
-                                <?php
-                            endforeach;
-
-                            if ($cnt > 5):
-                                ?>
-                                <li>
-                                    <button type="button" class="st-show-more-link js-show-more-amenities">
-                                        + Show more amenities (<?php echo ($cnt - 5); ?>)
-                                    </button>
-                                </li>
-                                <?php
-                            endif;
-                        endif;
-                        ?>
-                    </ul>
-                </div>
-
-                <div style="margin-top: 25px;">
-                    <button type="button" class="st-btn st-btn--primary js-clear-filters" style="width: 100%; border-radius: 8px;">
-                        RESET ALL FILTERS
+                <div class="st-filter-sidebar__footer">
+                    <button type="button" class="st-btn st-btn--primary js-apply-mobile-filters" style="width: 100%;">
+                        Apply Filters
                     </button>
                 </div>
             </aside>
 
-            <!-- Listing Main Content -->
+            <!-- Listing Main Content (Directly Next to Filter Sidebar) -->
             <div class="st-listing-content">
-                <!-- Mobile Trigger -->
-                <button type="button" class="st-mobile-filter-trigger js-mobile-filter-trigger" onclick="document.querySelector('.st-smart-sidebar').scrollIntoView({behavior:'smooth'})">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"></path></svg>
-                    <span>FILTER EXPERIENCES</span>
-                </button>
-
-                <!-- Smart Modern Toolbar -->
-                <div class="st-smart-toolbar">
-                    <div class="st-smart-toolbar__left">
-                        <span class="st-results-counter">
-                            Found <strong class="js-results-count"><?php echo intval($exp_query->found_posts); ?></strong> experiences
-                        </span>
-
-                        <div class="st-view-toggle-smart">
-                            <button type="button" class="st-view-toggle-btn js-view-btn is-active" data-view="grid" title="Grid View">
-                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                                <span>Grid</span>
+                <!-- Top Toolbar: VIEW, SORT Tabs, SHOW MAP, Counter -->
+                <div class="st-toolbar">
+                    <div class="st-toolbar__view">
+                        <span class="st-toolbar__label">VIEW:</span>
+                        <div class="st-view-toggle">
+                            <button type="button" class="st-view-btn js-view-btn is-active" data-view="grid" title="Grid View" aria-label="Grid view">
+                                <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>
+                                <span>GRID</span>
                             </button>
-                            <button type="button" class="st-view-toggle-btn js-view-btn" data-view="list" title="List View">
-                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><line x1="8" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2"></line><line x1="8" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2"></line><line x1="8" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2"></line><circle cx="4" cy="6" r="2"></circle><circle cx="4" cy="12" r="2"></circle><circle cx="4" cy="18" r="2"></circle></svg>
-                                <span>List</span>
+                            <button type="button" class="st-view-btn js-view-btn" data-view="list" title="List View" aria-label="List view">
+                                <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><line x1="8" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></line><line x1="8" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></line><line x1="8" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></line><circle cx="4" cy="6" r="2"></circle><circle cx="4" cy="12" r="2"></circle><circle cx="4" cy="18" r="2"></circle></svg>
+                                <span>LIST</span>
                             </button>
                         </div>
                     </div>
 
-                    <div class="st-smart-toolbar__right">
-                        <div class="st-sort-wrapper">
-                            <label for="filter_sort">Sort by:</label>
-                            <select name="filter_sort" id="filter_sort" class="st-smart-select">
-                                <option value="recommended">Featured / Recommended</option>
-                                <option value="title_asc">A &ndash; Z</option>
-                                <option value="near_me">📍 Near Me (Okanagan GPS)</option>
-                            </select>
+                    <div class="st-toolbar__sort">
+                        <span class="st-toolbar__label">SORT:</span>
+                        <div class="st-sort-tabs">
+                            <button type="button" class="st-sort-tab js-sort-tab is-active" data-sort="recommended">RECOMMENDED</button>
+                            <button type="button" class="st-sort-tab js-sort-tab" data-sort="near_me">NEAR ME</button>
+                            <button type="button" class="st-sort-tab js-sort-tab" data-sort="price_asc">PRICE: LOW &ndash; HIGH</button>
+                            <button type="button" class="st-sort-tab js-sort-tab" data-sort="rating_desc">RATING</button>
                         </div>
+                        <select name="filter_sort" id="filter_sort" class="st-select js-filter-sort" style="display:none;">
+                            <option value="recommended" selected>Recommended</option>
+                            <option value="near_me">Near Me</option>
+                            <option value="price_asc">Price: Low to High</option>
+                            <option value="price_desc">Price: High to Low</option>
+                            <option value="rating_desc">Highest Rated</option>
+                            <option value="duration_asc">Duration</option>
+                        </select>
+                    </div>
 
-                        <button type="button" class="st-btn-map-toggle js-toggle-map">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+                    <div class="st-toolbar__right-actions">
+                        <button type="button" class="st-btn-map-toggle js-toggle-map" aria-label="Toggle map view">
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
                             <span>SHOW MAP</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Leaflet Interactive Map -->
-                <div class="st-map-wrapper js-map-wrapper">
-                    <div id="st-experience-map"></div>
+                <!-- Leaflet Interactive Map Drawer -->
+                <div class="st-map-drawer js-map-wrapper">
+                    <div id="st-experience-map" style="height: 380px; width: 100%;"></div>
                 </div>
 
                 <!-- Experiences Grid -->
@@ -247,23 +243,48 @@ $exp_query = new WP_Query(array(
                     else:
                         ?>
                         <div class="st-no-results">
-                            <h3>No experiences found matching this criteria</h3>
-                            <p>Try resetting your filters or clearing keyword search.</p>
-                            <button type="button" class="st-btn st-btn--primary js-clear-filters" style="margin-top:15px;">Reset Filters</button>
+                            <div class="st-no-results__icon">🔍</div>
+                            <h3>No experiences found in this category</h3>
+                            <p>Try clearing your filters to see all Okanagan experiences.</p>
+                            <button type="button" class="st-btn st-btn--primary js-clear-filters" style="margin-top: 15px;">Reset Filters</button>
                         </div>
                         <?php
                     endif;
                     ?>
                 </div>
 
-                <!-- Load More Button -->
-                <div class="st-pagination-wrapper">
-                    <button type="button" class="st-load-more-btn js-load-more" style="<?php echo ($exp_query->max_num_pages > 1) ? '' : 'display:none;'; ?>">
-                        LOAD MORE EXPERIENCES
+                <!-- Pagination & Results Count Bar (Tourism Kelowna style) -->
+                <div class="st-pagination-wrap">
+                    <div class="st-pagination-bar">
+                        <button type="button" class="st-pagination-arrow js-page-prev" disabled aria-label="Previous page">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        </button>
+                        <span class="st-pagination-info">
+                            <span class="js-page-range">1 &ndash; <?php echo min(12, intval($exp_query->found_posts)); ?></span> of <strong class="js-results-count"><?php echo intval($exp_query->found_posts); ?></strong>
+                        </span>
+                        <button type="button" class="st-pagination-arrow js-page-next" <?php echo ($exp_query->max_num_pages <= 1) ? 'disabled' : ''; ?> aria-label="Next page">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </button>
+                    </div>
+
+                    <button type="button" class="st-btn-load-more js-load-more" style="<?php echo ($exp_query->max_num_pages > 1) ? '' : 'display:none;'; ?>">
+                        <span>Load More Experiences</span>
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </button>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Backdrop for Mobile Bottom Sheet (outside flex layout) -->
+    <div class="st-filter-backdrop js-close-filters-sheet"></div>
+
+    <!-- Sticky Mobile Filter Button -->
+    <div class="st-mobile-sticky-filter-bar">
+        <button type="button" class="st-mobile-filter-btn js-open-filters-sheet">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+            <span>Filters</span>
+        </button>
     </div>
 </main>
 

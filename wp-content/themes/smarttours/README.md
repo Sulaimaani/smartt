@@ -1,141 +1,173 @@
-# Smart Tours (smarttours.ca) — WordPress Theme
+# Canada Smart Tours (smarttours.ca) — WordPress Theme
 
-**Canada Smart Tours** is a lightweight, high-performance, mobile-first WordPress theme designed specifically for tour operators and resellers in the Okanagan Valley, British Columbia, Canada.
-
-It recreates the UX and layout structure of [Tourism Kelowna Experiences](https://www.tourismkelowna.com/experiences/) with a 3-level deep hierarchical experience taxonomy, full-bleed category tiles, faceted sidebar filters, interactive Leaflet/OpenStreetMap mapping, a trip builder, click/affiliate tracking, and native meta boxes (no ACF or paid plugins required).
+**Canada Smart Tours** is a clean, modern, Viator-inspired WordPress theme designed for tour operators and online resellers in the Okanagan Valley, British Columbia, Canada.
 
 ---
 
-## 1. Quick Installation & Setup
+## 1. What Changed (Redesign Overview)
 
-1. **Upload and Activate Theme:**
-   - In your WordPress Admin, go to **Appearance → Themes → Add New → Upload Theme**.
-   - Choose `smarttours.zip` (located in `wp-content/themes/smarttours.zip` or `htdocs/smarttours.zip`) and click **Install Now**.
-   - Click **Activate**.
+The theme has been redesigned from the ground up for a clean, modern, and professional aesthetic inspired by Viator's tour pages:
 
-2. **Configure Permalinks (Crucial):**
-   - Go to **Settings → Permalinks**.
-   - Select **Post name** (`/%postname%/`).
-   - Click **Save Changes** twice. This ensures that the custom rewrite rules for nested category URLs (`/experiences/active-outdoors/lake-activities/scuba-diving/`) and tracking links (`/go/{id}/`) are active.
+### Design System
+- **Typography:** Modern clean sans-serif (**Plus Jakarta Sans** / Inter) with normal-case headings, refined font weights, and clear visual hierarchy (no heavy condensed uppercase).
+- **Color Palette (CSS Variables):**
+  - Primary Brand Green: `#0F7B5F` (buttons, active states, key accents)
+  - Dark Body Text: `#1A1A1A`
+  - Muted Text: `#6B6B6B`
+  - Borders: `#E5E5E5`
+  - Light Background: `#F7F7F7`
+  - Surface White: `#FFFFFF`
+  - Rating Yellow: `#F5B301`
+- **Dark Mode Support:** Clean, high-contrast dark theme toggle with persistence in `localStorage` and system `prefers-color-scheme` support.
+- **Card & Element Styling:** 12px rounded corners on cards, 8px on buttons/inputs, soft shadows only on hover, 8px spacing scale, 1200px max content width.
+- **Mobile-First Responsiveness:** Fully tested across 375px (mobile), 768px (tablet), 1024px (small desktop), and 1440px (wide desktop). All touch targets $\ge$ 44px with zero horizontal scroll.
 
-3. **Automatic Demo Content & Taxonomy Tree:**
-   - On theme activation, the 12-category Okanagan taxonomy tree, filter amenities, guide pages, blog posts, and demo experiences are automatically seeded.
-   - To re-seed or delete demo data at any time, navigate in WP Admin to **Experiences → Demo Content**.
+### Header & Navigation
+- **Row 1:**
+  - Sticky white bar with Canada Smart Tours logo mark.
+  - Large rounded center search bar (`Search tours in Kelowna & Okanagan Valley...`) with **Live Search Suggestions** for both experiences and categories.
+  - Right tools: CAD ($) currency badge, dark mode toggle button, Help link, and **My Trip** heart button with real-time count badge.
+- **Row 2:**
+  - **Explore All** dropdown with a desktop **Mega Menu** featuring all 12 main Okanagan categories and their sub-categories in columns.
+  - Quick direct links: *Wine Touring*, *Active & Outdoors*, *Food & Drink*, *Family Friendly*, *Attractions*, and *Trip Planner*.
+- **Mobile Header:**
+  - Compact header with brand logo, mobile search drawer toggle, theme toggle, My Trip count badge, and hamburger button.
+  - Slide-in mobile drawer with accordion-based category navigation and quick links.
 
----
+### Homepage
+- **Hero Section:** Full-width Okanagan landscape image with dark overlay, bold headline, interactive search box with category select and date picker, and popular search chips (*Wine Touring*, *Lake Charters*, *Myra Trestles*, *Craft Breweries*, *Family Friendly*).
+- **Top Experiences Carousel:** Horizontal card scroll with next/prev arrow buttons on desktop and smooth touch swipe on mobile.
+- **Explore by Category:** 12 image tiles with 12px rounded corners, category names, and experience counts (counts of 0 are automatically hidden).
+- **Why Book with Smart Tours:** 3 trust points (*100% Okanagan Local*, *Live Availability*, *Free Cancellation*).
+- **Local Guides & Blog:** 3 clean insider cards.
+- **Recently Viewed Experiences:** Smart strip dynamically rendered from `localStorage`.
 
-## 2. Managing Experiences & Bookings
+### Listing & Category Archives
+- **Breadcrumbs & Intro:** Clean breadcrumb trail, H1, one-line category description.
+- **Sub-Category Chips:** Scrollable chip pills under H1 on mobile and desktop instead of oversized tiles.
+- **Left White Filter Sidebar (Desktop):**
+  - Keyword search within category.
+  - Free cancellation toggle switch.
+  - Price range slider with live `$X CAD` label.
+  - Duration filter radio buttons (Any, Up to 2 hours, 2 to 4 hours, 4+ hours).
+  - Star rating filter (Any, 4.5+ stars, 4.0+ stars).
+  - Amenities checkboxes with counts and `+ Show more` expansion toggle.
+  - Reset filters button.
+- **Mobile Bottom Sheet:** Sticky floating "Filters" button on mobile that opens an animated bottom drawer with all filter controls and an "Apply Filters" CTA.
+- **Toolbar:** Found count, sort dropdown (*Recommended*, *Price: Low to High*, *Price: High to Low*, *Highest Rated*, *Duration*, *Near Me via GPS*), Grid/List view switcher, and Leaflet interactive map toggle.
+- **Skeleton Loaders:** Shimmering skeleton cards display during AJAX filter updates.
 
-### How to Add a New Experience
-1. Go to **Experiences → Add New Experience**.
-2. Enter the title (e.g. *Mission Hill Family Estate Tour & Tasting*).
-3. Add a description in the main editor and an excerpt for cards.
-4. Set the **Featured Image** (16:10 aspect ratio recommended).
-5. In the right sidebar:
-   - Check the relevant **Experience Categories** (an experience can belong to multiple categories).
-   - Check the applicable **Amenities** (e.g., *Family Friendly*, *Product Tasting*, *Outdoor Patio*).
-6. Fill in the **Experience Details & Booking** meta box:
-   - **Location:** Street address, City (e.g. *West Kelowna*), Postal Code.
-   - **Coordinates:** Latitude and Longitude (e.g. `49.8354`, `-119.5841`) for interactive Leaflet maps and "Near Me" distance sorting.
-   - **Pricing & Duration:** e.g. Price from `$65` CAD, Duration `90 mins`.
-   - **Booking Configuration:**
-     - `none` — Displays a direct **VISIT WEBSITE** button linking to the official site.
-     - `affiliate_link` / `external_link` — Displays a **BOOK NOW** button routed through `/go/{experience_id}/` (tracked in database, logged in Click Reports, and 302 redirected with `rel="nofollow sponsored"`).
-     - `booking_widget` — Displays a **BOOK NOW** button that smoothly scrolls down to an embedded booking widget section.
-   - **Booking Widget Code:** Paste your embed snippet or iframe from **Bókun, Rezdy, Viator, or GetYourGuide**.
-   - **Gallery Images:** Comma-separated image URLs or media IDs for the hero lightbox carousel.
-
----
-
-## 3. Key Theme Features
-
-- **Header & Navigation:**
-  - Top white bar: Bold text logo `CANADA SMART TOURS`, Kelowna live weather placeholder (`Kelowna 1°C`), `My Trip` counter badge, and search modal trigger.
-  - Light blue navigation bar (`#ADD8E6`): `EXPERIENCES`, `EXPLORE`, `PLAN`, `STAY`, `EVENTS`.
-  - **Desktop Mega Menu:** Hovering over `EXPERIENCES` displays all 12 main categories and their sub-categories in columns.
-  - **Mobile Accordion Navigation:** Mobile hamburger button opens a full-screen slide-in drawer with collapsible accordion subcategories and quick access to saved trips.
-
-- **Experiences Landing Page (`/experiences/`):**
-  - Full-width hero image with breadcrumbs and introductory copy.
-  - 12 category tiles grid (4 columns desktop, 2 tablet, 1 mobile): full-bleed photos with dark overlay, yellow ring icon, and bold condensed uppercase typography.
-  - `#EXPLORETHEOKANAGAN BLOG` section featuring the 3 latest outdoor and wine stories.
-
-- **Category Archives (`taxonomy-experience_category.php`):**
-  - Nested category paths: `/experiences/{category}/{sub-category}/{sub-sub-category}/`.
-  - Child category tiles and linked guide pages / blog posts.
-  - **Sidebar:** Keyword search input with yellow search button, amenities checkboxes with live counts, and "CLEAR FILTERS".
-  - **Toolbar:** Grid / List view toggle, sorting (Recommended, A–Z, Near Me via browser geolocation), and "SHOW MAP" Leaflet interactive map toggle.
-  - **AJAX Faceted Filtering:** Instant filtering without page reload; shareable URL query parameters (`?keyword=...&amenities=...&sort=...`).
-  - **Quickview Modal:** Click "QUICKVIEW" on any card to preview experience highlights without leaving the page.
-
-- **Single Experience Page (`single-experience.php`):**
-  - Beige top hero (`#E8E1D3`) with a decorative circle background accent.
-  - Lightbox photo gallery with `1/5` counter, "Add to Trip" heart button, and native Web Share API trigger.
-  - Dynamic booking button logic based on `booking_type`.
-  - Address with pin, phone link, price from, duration, social icon circles, rich description, amenities badge pills, interactive Leaflet map, and "YOU MAY ALSO LIKE" related cards.
-
-- **Trip Builder ("My Trip"):**
-  - Heart buttons store experience IDs in `localStorage`.
-  - Dedicated `/my-trip/` page displays saved experiences with remove buttons and an interactive Leaflet route map showing all saved stops.
-
-- **Click Tracking & Affiliate Redirects:**
-  - Tracked redirects via `/go/{experience_id}/`.
-  - Records timestamp, experience ID, referrer, user agent, IP address, and destination in `wp_st_clicks`.
-  - **Click Reports Admin:** View clicks per experience, filter by date range (Today, 7 days, 30 days, All time), and export to CSV.
-
----
-
-## 4. Verification & Testing Checklist
-
-| Test Item | Status | Verified Details |
-|---|:---:|---|
-| **Category Permalinks** | Passed | Tested 1-level, 2-level, and 3-level URLs (e.g. `/experiences/active-outdoors/lake-activities/scuba-diving/`) — HTTP 200 |
-| **Single Experience Permalinks** | Passed | Nested permalink `/experiences/food-drink/restaurants/winery-restaurants/mission-hill-.../` — HTTP 200 |
-| **Desktop Mega Menu (1440px)** | Passed | 4-column mega menu displaying all 12 categories and subcategories |
-| **Mobile Drawer (375px)** | Passed | Slide-in drawer with accordion navigation and tap targets >= 44px |
-| **AJAX Filters & Faceted Search** | Passed | Keyword search and amenities checkboxes filter cards dynamically without page reload |
-| **Leaflet Map Integration** | Passed | OpenStreetMap tiles, custom marker popups, and route map on `/my-trip/` |
-| **Quickview Modal** | Passed | Opens modal with experience summary, amenities, and booking button |
-| **Trip Builder (localStorage)** | Passed | Heart buttons toggle items, header counter increments, `/my-trip/` plots saved markers |
-| **Click Tracking `/go/` Route** | Passed | Returns 302 redirect with `rel="nofollow sponsored"` and logs to `wp_st_clicks` |
-| **Click Reports Admin** | Passed | Viewable under `Experiences → Click Reports` with CSV export |
-| **PHP & Console Cleanliness** | Passed | Zero PHP errors/warnings with `WP_DEBUG = true`; no console errors |
-| **Responsiveness** | Passed | Verified at 375px, 768px, 1024px, and 1440px |
+### Viator-Style Single Experience Page
+- **Header:** Breadcrumbs, H1, rating score with review count link, location pin, Share button, and Save to Trip heart button.
+- **Viator Photo Gallery:**
+  - Vertical thumbnails column on left + large main image on right with previous/next arrows and a photo counter pill (`1 / 5 Photos`).
+  - Fullscreen lightbox modal on click with keyboard Esc / arrow navigation.
+  - Full-width swipeable gallery on mobile.
+- **Quick Facts Row:** Duration, Mobile Ticket Accepted, Language, Pickup / Meeting Point.
+- **Sticky Desktop Booking Box:**
+  - Price from `$X CAD` per person with Best Price Guarantee badge.
+  - Date picker input.
+  - Travelers selector with Adults (+/-) counters and live total price calculation.
+  - Big "Book Now" CTA respecting existing booking types (`booking_widget`, `affiliate_link`, `external_link`, `none`).
+  - Free cancellation trust note and "Reserve now & pay later" hint.
+- **Mobile Sticky Bottom Bar:** Docked price summary and Book Now CTA fixed at bottom of viewport.
+- **Sticky In-Page Navigation:** `Overview` | `What's Included` | `Meeting & Pickup` | `What to Expect` | `Additional Info` | `Cancellation` | `Reviews` with scroll-spy highlighting.
+- **Rich Content Sections:**
+  - Overview with amenities tags.
+  - What's Included / Excluded with green checkmark and cross icons.
+  - Meeting & Pickup details with Leaflet map and "Open in Google Maps" directions link.
+  - Operating schedule (hidden if empty).
+  - What to Expect details.
+  - Additional Info (two-column bullets with `+ Show more details` toggle).
+  - Standard 24-hour cancellation policy card.
+  - Local visitor questions & support card.
+  - Traveller photos grid.
+  - Customer reviews with score pill, star breakdown bars, and verified review cards.
+- **You Might Also Like Carousel:** 4 related tours from the same category.
+- **Recently Viewed Strip:** Automatically tracks current tour and displays previously viewed experiences.
 
 ---
 
-## 5. File Structure
+## 2. How to Share a Trip (My Trip Planner)
 
-```text
-smarttours/
-├── style.css                      # Theme header & metadata
-├── functions.php                  # Theme setup, assets enqueue & hooks
-├── header.php                     # Header, top bar, mega menu & mobile drawer
-├── footer.php                     # Footer, newsletter, copyright & quickview modal
-├── front-page.php                 # Homepage template
-├── archive-experience.php         # Experiences landing page (/experiences/)
-├── taxonomy-experience_category.php # Hierarchical category archive with AJAX filters
-├── single-experience.php          # Single experience details & booking logic
-├── page-my-trip.php               # Trip planner page (/my-trip/)
-├── page.php                       # Standard guide page template
-├── single.php                     # Blog post story template
-├── index.php                      # Fallback index template
-├── 404.php                        # Custom 404 page
-├── README.md                      # Documentation & setup guide
-├── screenshot.png                 # Theme preview screenshot
-├── inc/
-│   ├── post-types.php             # Experience CPT & custom image sizes
-│   ├── taxonomies.php             # experience_category & amenity taxonomies + term meta
-│   ├── permalinks.php             # Pretty nested rewrites & request parser
-│   ├── meta-boxes.php             # Native custom meta boxes for experiences
-│   ├── ajax-filters.php           # AJAX filter handler, Haversine sorting & Quickview
-│   ├── click-tracking.php         # Custom DB table wp_st_clicks & /go/ redirect handler
-│   ├── demo-seeder.php            # 12-category tree seeder, guides, blogs, leaf experiences
-│   ├── schema-seo.php             # JSON-LD BreadcrumbList & TouristAttraction schema
-│   └── admin-pages.php            # Click Reports page & Demo content reset tool
-└── assets/
-    ├── css/
-    │   └── main.css               # Mobile-first CSS design system
-    └── js/
-        └── main.js                # Filters, Leaflet map, trip builder & UI controller
-```
+The theme features a server-persisted, shareable trip planner that requires no visitor login.
+
+### Saving Experiences
+1. Click the **Heart icon** on any experience card, listing page, or single experience hero.
+2. A toast notification confirms: `Added to My Trip • View`.
+3. The header **My Trip** pill updates its counter badge instantly.
+
+### Viewing & Managing Your Trip
+1. Navigate to `/my-trip/` or click the **My Trip** badge in the header.
+2. The page displays:
+   - Total number of saved tours.
+   - Estimated total price in **CAD ($)** calculated live.
+   - An interactive **Leaflet Route Map** with numbered stop pins (`Stop #1`, `Stop #2`, ...).
+   - Saved experience cards with individual date inputs (e.g. `July 10, 2026`) and custom notes (e.g. `Book patio table`).
+   - A **Remove** button on each card and a **Clear All** button.
+
+### Generating a Shareable Trip Link
+1. On the `/my-trip/` page, click the **Share Trip** button.
+2. Smart Tours securely saves the itinerary server-side into the custom database table `wp_st_trips`:
+   - `id`: Unique record ID.
+   - `share_code`: 6-character random alphanumeric code (e.g. `ab12cd`).
+   - `experience_ids`: JSON array of saved experience post IDs.
+   - `notes`: JSON object containing dates and notes for each stop.
+   - `created_at`: MySQL timestamp.
+3. The Share Modal pops up with the permanent link:
+   `https://smarttours.ca/trip/ab12cd/` (or `http://localhost/wordpress/trip/ab12cd/`).
+4. Sharing Channels:
+   - **Copy Link:** Click "Copy link" to copy the URL to the clipboard with an instant confirmation toast (`Link copied to clipboard!`).
+   - **WhatsApp:** Direct WhatsApp share link with pre-filled message.
+   - **Email:** Direct mailto link with subject and itinerary URL.
+   - **Native Mobile Share:** Triggers `navigator.share` on iOS and Android devices.
+
+### Opening a Shared Trip
+1. When a friend or client opens `smarttours.ca/trip/{share_code}/`, the custom rewrite rule loads `page-my-trip.php` in read-only shared mode.
+2. The page displays:
+   - Banner: `Shared Okanagan Itinerary • Trip {CODE}`.
+   - A prominent **Save to My Trip** button: clicking imports the entire trip (all experience IDs and notes) into the visitor's local trip planner and redirects them to their personal `/my-trip/` page.
+   - Complete route map and cards.
+
+---
+
+## 3. Experience Meta Fields Reference
+
+All new Viator-style layout sections are supported by native WordPress meta boxes under **Experiences → Edit Experience**:
+
+| Meta Field Key | Label | Description |
+|---|---|---|
+| `_st_badge` | Card Badge | e.g. `Likely to Sell Out`, `Free Cancellation`, `Bestseller` |
+| `_st_rating` | Star Rating | e.g. `4.9` (0 to 5) |
+| `_st_review_count` | Review Count | e.g. `128` |
+| `_st_language` | Offered Languages | e.g. `English, French` |
+| `_st_mobile_ticket` | Mobile Ticket | `yes` (Mobile Ticket Accepted) or `no` (Printed Voucher) |
+| `_st_pickup` | Pickup / Transportation | e.g. `Pickup offered from Kelowna hotels` |
+| `_st_included` | What's Included | Textarea: one item per line (rendered with green checkmarks) |
+| `_st_excluded` | What's Excluded | Textarea: one item per line (rendered with cross icons) |
+| `_st_meeting_point` | Meeting Point Instructions | Detailed address and meeting instructions |
+| `_st_end_point` | End Point | Activity end location |
+| `_st_operating_hours` | Operating Schedule | e.g. `Daily: 10:00 AM – 6:00 PM (May - Oct)` (hidden if empty) |
+| `_st_what_to_expect` | What to Expect | Detailed tour description / paragraphs |
+| `_st_additional_info` | Additional Information | Textarea: one bullet per line (supports Show More toggle) |
+| `_st_cancellation_policy` | Cancellation Policy | Custom cancellation terms (defaults to 24h standard) |
+| `_st_price_from` | Price From (CAD) | e.g. `65` |
+| `_st_duration` | Duration | e.g. `3 Hours` |
+| `_st_booking_type` | Booking Type | `none`, `affiliate_link`, `booking_widget`, `external_link` |
+| `_st_booking_url` | Booking / Affiliate URL | Direct link or tracked redirect via `/go/{id}/` |
+| `_st_booking_widget_code` | Booking Widget Code | Embed script / iframe from Bókun, Rezdy, Viator, etc. |
+| `_st_gallery_ids` | Gallery Images | Comma-separated image URLs or media IDs |
+
+*Note: If any optional meta field is left empty, its corresponding frontend section is gracefully hidden.*
+
+---
+
+## 4. Verification & Testing
+
+The theme has been tested across 375px, 768px, 1024px, and 1440px viewports:
+- [x] Header search, live suggestions dropdown, and Explore mega menu work seamlessly.
+- [x] Mobile drawer slides in with accordions and accessible tap targets $\ge$ 44px.
+- [x] Category filters (price slider, duration, rating, free cancellation, amenities) and sorting update via AJAX with skeleton loading states.
+- [x] Single experience gallery thumbnails, lightbox, sticky tabs, and sticky desktop booking box / mobile bottom bar function smoothly.
+- [x] My Trip planner adds/removes items, saves notes/dates, generates shareable `/trip/{code}/` links, copies to clipboard, and imports trips.
+- [x] Zero PHP notices or warnings in `debug.log` and zero JavaScript console errors.

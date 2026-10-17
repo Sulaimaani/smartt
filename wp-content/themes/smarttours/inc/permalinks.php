@@ -54,6 +54,9 @@ function smarttours_custom_rewrite_rules() {
     // Click tracking endpoint: /go/{id}/
     add_rewrite_rule('^go/([0-9]+)/?$', 'index.php?st_go_id=$matches[1]', 'top');
 
+    // Share trip endpoint: /trip/{share_code}/
+    add_rewrite_rule('^trip/([a-zA-Z0-9]+)/?$', 'index.php?st_share_code=$matches[1]', 'top');
+
     // Trip builder page: /my-trip/
     add_rewrite_rule('^my-trip/?$', 'index.php?pagename=my-trip', 'top');
 
@@ -63,10 +66,10 @@ function smarttours_custom_rewrite_rules() {
 add_action('init', 'smarttours_custom_rewrite_rules', 10);
 
 /**
- * Guarantee page-my-trip.php is loaded for /my-trip/
+ * Guarantee page-my-trip.php is loaded for /my-trip/ and /trip/{share_code}/
  */
 function smarttours_template_include($template) {
-    if (is_page('my-trip') || get_query_var('pagename') === 'my-trip' || get_query_var('st_page') === 'my-trip') {
+    if (is_page('my-trip') || get_query_var('pagename') === 'my-trip' || get_query_var('st_page') === 'my-trip' || get_query_var('st_share_code')) {
         $trip_template = locate_template('page-my-trip.php');
         if ($trip_template) {
             return $trip_template;
@@ -83,6 +86,7 @@ add_filter('template_include', 'smarttours_template_include');
 function smarttours_query_vars($vars) {
     $vars[] = 'st_go_id';
     $vars[] = 'st_page';
+    $vars[] = 'st_share_code';
     return $vars;
 }
 add_filter('query_vars', 'smarttours_query_vars');
